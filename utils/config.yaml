@@ -1,0 +1,87 @@
+prepare_data:
+  raw_input_wavs: '/home/iman/storage/code/project/PERSONAL/military/BWE/data/SampleDeepMine/wav'
+  sample_rates: [4000,8000,16000]
+  save_root: '../data'
+---
+model:
+  feat_match: 10.0
+  lambda_adv: 2.5
+  lambda_time_loss: 20
+  use_subband_stft_loss: False
+  feat_loss: False
+  out_channels: 1
+  in_channels: 1 # 32 or 1
+  num_layers: 16 # changed
+  num_stacks: 2
+  kernel_size: 3
+  residual_channels: 128
+  gate_channels: 128
+  skip_out_channels: 128
+  num_D : 3
+  ndf : 16
+  n_layers: 3
+  downsampling_factor: 4
+  disc_out: 512
+
+stft_loss_params:
+  fft_sizes: [ 1024, 2048, 512 ]  # List of FFT size for STFT-based loss.
+  hop_sizes: [ 120, 240, 50 ]     # List of hop size for STFT-based loss
+  win_lengths: [ 600, 1200, 240 ] # List of window length for STFT-based loss.
+  window: "hann_window"         # Window function for STFT-based loss
+---
+sr:
+  input: 8000
+  target: 16000
+
+data:
+  input_wavs: './data/8kHz'
+  output_wavs: './data/16kHz'
+  mel_path: './data/mels'
+
+---
+train:
+  seed: 1234
+  num_gpus: 0
+  rep_discriminator: 2
+  discriminator_train_start_steps: 1000000
+  postnet_start_steps: 500000
+  num_workers: 1
+  batch_size: 1
+  optimizer: 'adam'
+  adamG:
+    lr: 0.001
+    beta1: 0.5
+    beta2: 0.9
+    lr_decay: 0.999
+  adamD:
+    lr: 0.001
+    beta1: 0.5
+    beta2: 0.9
+
+
+---
+dist:
+  dist_backend: "nccl"
+  dist_url: "tcp://localhost:54321"
+  world_size: 1
+
+---
+audio:
+  n_mel_channels: 80
+  segment_length: 16000
+  pad_short: 2000
+  filter_length: 1024
+  hop_length: 256  # WARNING: this can't be changed.
+  win_length: 1024
+  sampling_rate: 16000
+  mel_fmin: 0.0
+  mel_fmax: 8000.0
+  fmax_for_loss: null
+---
+logs:
+  summary_interval: 10
+  validation_interval: 100
+  save_interval: 100
+  chkpt_dir: 'chkpt'
+  log_dir: 'logs'
+
